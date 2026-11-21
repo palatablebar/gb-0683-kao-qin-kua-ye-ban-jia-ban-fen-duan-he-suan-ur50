@@ -10,14 +10,15 @@ def split_shift(shift):
     if start<planned_start-timedelta(hours=6) or end>planned_end+timedelta(hours=6):raise DomainError('RANGE','打卡超出班次范围')
     if start.second or end.second or start.microsecond or end.microsecond:raise DomainError('RANGE','打卡精度必须为整分钟')
     boundaries={start,end}
-    for d in (bs,be):
+    for d in (bs,be,planned_start,planned_end):
         if start<d<end:boundaries.add(d)
     midnight=start.replace(hour=0,minute=0,second=0)+timedelta(days=1)
     while midnight<end:boundaries.add(midnight);midnight+=timedelta(days=1)
     points=sorted(boundaries);segments=[]
     for left,right in zip(points,points[1:]):
         if bs<=left<be:continue
-        segments.append({'id':shift['id'],'employee':shift['employee'],'shift_day':shift['day'],'calendar_day':left.date().isoformat(),'start':left.isoformat(),'end':right.isoformat(),'minutes':int((right-left).total_seconds()//60),'rate':str(a['hourly_rate']),'line':a['_line']})
+        phase='EARLY' if left<planned_start else 'EXTENDED' if left>=planned_end else 'PLANNED'
+        segments.append({'id':shift['id'],'employee':shift['employee'],'shift_day':shift['day'],'calendar_day':left.date().isoformat(),'start':left.isoformat(),'end':right.isoformat(),'minutes':int((right-left).total_seconds()//60),'rate':str(a['hourly_rate']),'phase':phase,'line':a['_line']})
     return segments
 
 def apply(state):

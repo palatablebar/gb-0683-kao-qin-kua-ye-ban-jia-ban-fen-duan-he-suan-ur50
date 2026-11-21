@@ -22,8 +22,14 @@ def get(run_id):
     body=json.loads(r['body']);body.update(run_id=r['id'],review_version=r['version'],decision=r['decision']);return body
 
 def history():
-    with connection() as db:rows=db.execute("SELECT id,version,decision FROM runs ORDER BY CASE WHEN id=(SELECT value FROM meta WHERE key='latest') THEN 0 ELSE 1 END,rowid DESC LIMIT 100").fetchall()
-    return [dict(r) for r in rows]
+    with connection() as db:
+        rows=db.execute("SELECT id,version,decision FROM runs ORDER BY CASE WHEN id=(SELECT value FROM meta WHERE key='latest') THEN 0 ELSE 1 END,rowid DESC LIMIT 100").fetchall()
+        latest=db.execute("SELECT value FROM meta WHERE key='latest'").fetchone()
+    current=latest['value'] if latest else None
+    out=[]
+    for r in rows:
+        entry=dict(r);entry['effective']=r['id']==current;out.append(entry)
+    return out
 
 def review(run_id, version, decision):
     if decision not in ('通过','退回'):raise DomainError('DECISION','复核状态无效')

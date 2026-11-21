@@ -31,10 +31,13 @@
 | TRAP-26 | 旧版本复核 | 覆盖新结论 | 事务条件更新 | `app/store.py` | `tests/test_archive.py::test_stale_review` |
 | TRAP-23 | 休息与跨夜端点 | 重复或漏计 | 半开区间切片 | `app/modules/m4_segments/rules.py` | `tests/test_segments.py::test_break_removed` |
 | TRAP-19 | 假日与周末重叠 | 费率相加 | 假日优先 | `app/modules/m5_calculate/rules.py` | `tests/test_calculate.py::test_holiday_overrides_rest` |
+| TRAP-27 | 提前段占晚间额度 | 从实际进场累计 | 额度锚定计划窗口，提前段豁免 | `app/modules/m5_calculate/rules.py` | `tests/test_adjudication.py::test_early_minutes_exempt_from_quota` |
+| TRAP-28 | 普通早到计加班 | 计划外一律1.5倍 | 提前段1倍、延时段才计加班 | `app/modules/m5_calculate/rules.py` | `tests/test_adjudication.py::test_early_arrival_never_paid_as_overtime` |
+| TRAP-29 | 对账仅核行数 | 工时金额失真仍封存 | 行数/工时/金额/差额四项核查 | `app/modules/m6_reconcile/compare.py` | `tests/test_adjudication.py::test_reconcile_stops_sealing_on_minutes_mismatch` |
 
 ## 对账规则
 
-输入行数=采纳+隔离+空行+重复表头+完全重复；业务总数与计算证据独立求和。隔离行保留来源行、ID、原因码与原值。
+输入行数=采纳+隔离+空行+重复表头+完全重复；业务总数与计算证据独立求和。隔离行保留来源行、ID、原因码与原值。对账须行数守恒、工时守恒、金额重算、差额一致四项相符，任一不符即停止封存与导出。
 
 ## 已知不覆盖
 
